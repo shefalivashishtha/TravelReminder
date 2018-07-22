@@ -1,0 +1,218 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Home</title>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.js"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script>
+        var OAUTHURL = 'https://accounts.google.com/o/oauth2/auth?';
+        var VALIDURL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=';
+        var SCOPE = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email';
+        var CLIENTID = '658810886525-8eq69ms22roa4rlvajqid8ttpn5bom9c.apps.googleusercontent.com';
+        var REDIRECT = 'http://travelreminder.azurewebsites.net/Home/Index';
+        var LOGOUT = 'http://travelreminder.azurewebsites.net/Home/Index';
+        var TYPE = 'token';
+        var _url = OAUTHURL + 'scope=' + SCOPE + '&client_id=' + CLIENTID + '&redirect_uri=' + REDIRECT + '&response_type=' + TYPE+ '&prompt=consent';
+        var acToken;
+        var tokenType;
+        var expiresIn;
+        var user;
+        var refreshToken;
+        var loggedIn = false;
+
+        function login() {
+            
+            var win = window.open(_url, "windowname1", 'width=800, height=600');
+            var pollTimer = window.setInterval(function () {
+                try {
+                    acToken = gup(_url, 'access_token');
+                    tokenType = gup(_url, 'token_type');
+                    expiresIn = gup(_url, 'expires_in');
+                    refreshToken = gup(_url, 'code');
+
+                   // console.log(win.document.URL);
+                    if (win.document.URL.indexOf(REDIRECT) != -1) {
+                        window.clearInterval(pollTimer);
+                        var url = win.document.URL;
+                        
+                        acToken = gup(url, 'access_token');
+                        tokenType = gup(url, 'token_type');
+                        expiresIn = gup(url, 'expires_in');
+                        refreshToken = gup(url, 'refresh_token');
+
+                      win.close();
+
+                        validateToken(acToken, refreshToken);
+                    }
+                }
+                catch (e) {
+
+                }
+            }, 500);
+        }
+
+        function gup(url, name) {
+            namename = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+            var regexS = "[\\#&]" + name + "=([^&#]*)";
+            var regex = new RegExp(regexS);
+            var results = regex.exec(url);
+            if (results == null)
+                return "";
+            else
+                return results[1];
+        }
+
+        function validateToken(token,rToken) {
+            
+            getUserInfo(token, rToken);
+            $.ajax(
+
+                {
+
+                    url: VALIDURL + token,
+                    data: null,
+                    success: function (responseText) {
+
+
+                    },
+
+                });
+
+        }
+
+        function SendData() {
+            $.ajax({
+
+                url: '/Home/GoogleLogin/',
+
+                type: 'POST',
+                data: {
+                    token: acToken,
+                    rtoken: refreshToken,
+                    email: user.email,
+                    name: user.name,
+                    gender: user.gender,
+                    lastname: user.lastname,
+                    location: user.location
+                },
+                success: function () {
+                    window.location.href = "/Home/Index/";
+                },
+
+                //dataType: "jsonp"
+
+            });
+        }
+
+        function getUserInfo(token) {
+
+
+            $.ajax({
+
+                url: 'https://www.googleapis.com/oauth2/v1/userinfo?access_token=' + acToken,
+                data: null,
+                success: function (resp) {
+                    
+                    user = resp;
+                    SendData();
+
+                },
+
+
+            }),
+
+                $.ajax({
+
+                    url: '/Home/GoogleLogin/',
+
+                    type: 'POST',
+                    data: {
+
+                        email: user.email,
+                        name: user.name,
+                        gender: user.gender,
+                        lastname: user.lastname,
+                        location: user.location
+                    },
+                    success: function () {
+                        window.location.href = "/Home/Reminder/";
+                    },
+
+                    //dataType: "jsonp"
+
+                });
+
+
+        }
+    </script>
+    <script type="text/javascript" src="~/Scripts/bootstrap.js"></script>
+    <link rel="stylesheet" href="~/Content/font-awesome.min.css">
+    <link rel="stylesheet" href="~/Content/simple-line-icons.css">
+    <link rel="stylesheet" href="~/Content/themes/base/jquery-ui.min.css" />
+    <link rel="stylesheet" href="~/Content/jquery-ui-timepicker-addon.min.css" />
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/Content/device-mockups.min.css">
+    <link href="~/Content/new-age.min.css" rel="stylesheet">
+</head>
+<body id="page-top">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+        <div class="container">
+            <a class="navbar-brand js-scroll-trigger" href="~/Home/Home">Travel Reminder</a>
+            <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                Menu
+                <i class="fa fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link js-scroll-trigger" href="~/Home/ApiServices/"> <i class="fa fa-lg fa-cloud"></i> API Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link js-scroll-trigger" href="~/Home/Hotels/"><i class="fa fa-lg fa-hotel"></i> Hotels</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link js-scroll-trigger" href="#contact"> <i class="fa fa-lg fa-train"></i> Tour Packages</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    
+    <header class="masthead">
+        <div class="container h-100">
+            <div class="row h-100">
+                <div class="col-lg-7 my-auto">
+                    <div class="header-content mx-auto">
+                        <h1 class="mb-5">Don't miss a funful trip. Let us help you remind !</h1>
+                        <button class="btn btn-outline btn-xl js-scroll-trigger" id="GoogleLogin" style="color:black;" onclick="login()">Sign in with Google!</button>
+                    </div>
+                </div>
+                <div class="col-lg-5 my-auto">
+                    <div class="device-container">
+                        <div class="device-mockup iphone6_plus portrait white">
+                            <div class="device">
+                                <div class="screen">
+                                    <!-- Demo image for screen mockup, you can put an image here, some HTML, an animation, video, or anything else! -->
+                                    <img src="~/Content/Images/Snooze_2.jpg" class="img-fluid" alt="">
+                                </div>
+                                <div class="button">
+                                    <!-- You can hook the "home button" to some JavaScript events or just remove it -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+</body>
+</html>
