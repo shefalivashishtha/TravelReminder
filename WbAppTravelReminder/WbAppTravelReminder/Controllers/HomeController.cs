@@ -138,47 +138,7 @@ namespace WbAppTravelReminder.Controllers
                 return Content("<script language='javascript' type='text/javascript'>alert('We could not process the request. Please try after some Time.'); window.location='http://travelreminder.azurewebsites.net/home/Home'; </script>");
             }
         }
-
-        #region Test Code
-        public ActionResult CheckLogin(string code)
-        {
-            string gurl = "code=" + code + "client_id=658810886525-8eq69ms22roa4rlvajqid8ttpn5bom9c.apps.googleusercontent.com" +
-            "&client_secret=ntIQcF32vDXHrxAT-Ivko83D&redirect_uri=http://localhost:52768/Home/Index&grant_type=client_credentials";
-            
-
-            string url = "https://www.googleapis.com/oauth2/v3/token";
-
-            // creates the post data for the POST request
-            string postData = (gurl);
-
-            // create the POST request
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
-            webRequest.Host = "www.googleapis.com";
-
-            webRequest.Method = "POST";
-            webRequest.ContentType = "application/x-www-form-urlencoded";
-            webRequest.ContentLength = postData.Length;
-
-            // POST the data
-            using (StreamWriter requestWriter2 = new StreamWriter(webRequest.GetRequestStream()))
-            {
-                requestWriter2.Write(postData);
-            }
-
-            //This actually does the request and gets the response back
-            HttpWebResponse resp = (HttpWebResponse)webRequest.GetResponse();
-
-            string googleAuth;
-
-            using (StreamReader responseReader = new StreamReader(webRequest.GetResponse().GetResponseStream()))
-            {
-                //dumps the HTML from the response into a string variable
-                googleAuth = responseReader.ReadToEnd();
-            }
-            return View("Reminder");
-        }
-        #endregion
-
+        
         // Displays Input page for creating reminder
         public ActionResult Reminder()
         {
